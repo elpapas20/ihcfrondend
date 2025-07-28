@@ -16,6 +16,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 interface LibroInfo {
   nombre: string;
 }
+interface LibroAttributes {
+  nombre: string;
+}
 
 // Hook para detectar dispositivo móvil
 const useIsMobile = () => {

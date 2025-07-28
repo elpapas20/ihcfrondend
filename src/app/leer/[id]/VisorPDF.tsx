@@ -1,5 +1,3 @@
-// Archivo: app/leer/[id]/VisorPDF.tsx
-
 'use client'
 
 import { useState } from 'react';
@@ -7,7 +5,6 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-// --- Cambio Clave: Apuntamos al worker local en la carpeta /public ---
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 export default function VisorPDF() {
@@ -42,7 +39,8 @@ export default function VisorPDF() {
           file="/dummy.pdf"
           onLoadSuccess={onDocumentLoadSuccess}
           loading={<div className="p-4 text-center">Cargando PDF...</div>}
-          error={<div className="p-4 text-center text-red-500">Error al cargar el PDF. Asegúrate de que el archivo 'dummy.pdf' esté en la carpeta /public.</div>}
+          // ✅ CORRECCIÓN: Se reemplazan los apóstrofes ' por {"'"}
+          error={<div className="p-4 text-center text-red-500">Error al cargar el PDF. Asegúrate de que el archivo {"'"}dummy.pdf{"'"} esté en la carpeta /public.</div>}
         >
           <Page pageNumber={pageNumber} />
         </Document>
