@@ -11,25 +11,19 @@ import { useParams } from 'next/navigation';
 
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
-// --- INTERFACES PARA TIPADO ---
 interface LibroInfo {
   nombre: string;
 }
-
 interface SingleLibroAttributes {
     nombre: string;
 }
-
 interface SingleLibroData {
     id: number;
     attributes: SingleLibroAttributes;
 }
-
 interface SingleLibroApiResponse {
     data: SingleLibroData;
 }
-
-// Interfaz para describir las acciones del libro y evitar 'any' en el VisorPDF
 interface FlipBookActions {
   pageFlip: () => {
     flipNext: () => void;
@@ -37,9 +31,6 @@ interface FlipBookActions {
     turnToPage: (page: number) => void;
   };
 }
-
-
-// --- COMPONENTES Y HOOKS ---
 
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -56,10 +47,8 @@ function usePanOnDrag(ref: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
     let isPanning = false;
     let startX: number, startY: number, scrollLeft: number, scrollTop: number;
-
     const onMouseDown = (e: MouseEvent) => {
       if (e.button !== 1) return;
       e.preventDefault();
@@ -71,13 +60,11 @@ function usePanOnDrag(ref: React.RefObject<HTMLElement | null>) {
       el.style.cursor = 'grabbing';
       el.style.userSelect = 'none';
     };
-
     const onMouseUp = () => {
       isPanning = false;
       el.style.cursor = 'grab';
       el.style.userSelect = 'auto';
     };
-
     const onMouseMove = (e: MouseEvent) => {
       if (!isPanning) return;
       e.preventDefault();
@@ -88,11 +75,9 @@ function usePanOnDrag(ref: React.RefObject<HTMLElement | null>) {
       el.scrollLeft = scrollLeft - walkX;
       el.scrollTop = scrollTop - walkY;
     };
-
     el.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mouseup', onMouseUp);
     window.addEventListener('mousemove', onMouseMove);
-
     return () => {
       el.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mouseup', onMouseUp);
@@ -118,7 +103,6 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
   const [inputPage, setInputPage] = useState("1");
   const [scale, setScale] = useState(1);
   const [viewMode, setViewMode] = useState<'pagina' | 'scroll' | 'libro'>('libro');
-  // ✅ CORRECCIÓN 1: Usamos la interfaz FlipBookActions en lugar de 'any'.
   const flipBookRef = useRef<FlipBookActions | null>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -183,7 +167,8 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
               <motion.div animate={{ scale: scale }} transition={{ type: 'spring', stiffness: 200, damping: 20 }} className="pt-4">
                 {viewMode === 'libro' && !isMobile ? (
                   <div style={{ width: PAGE_WIDTH * 2, height: PAGE_HEIGHT }}>
-                    {/* @ts-ignore */}
+                    {/* ✅ CORRECCIÓN 2: Se cambia a @ts-expect-error */}
+                    {/* @ts-expect-error */}
                     <HTMLFlipBook width={PAGE_WIDTH} height={PAGE_HEIGHT} ref={flipBookRef as any} onFlip={onFlip} className="shadow-2xl mx-auto" showCover={true}>
                       {Array.from(new Array(numPages), (el, index) => (
                         <PaginaPDF key={`page_${index + 1}`} pageNumber={index + 1} width={PAGE_WIDTH} className={theme === 'oscuro' ? 'invert' : ''} />
@@ -211,7 +196,6 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
             )}
           </Document>
       </div>
-
       <motion.div 
         className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[95%] flex items-center justify-between gap-4 p-2 bg-blue-950/80 backdrop-blur-sm text-white rounded-lg shadow-lg flex-wrap"
         initial={{ y: 100, opacity: 0 }}
@@ -245,7 +229,6 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
   );
 }
 
-// --- Componente principal de la página de lectura ---
 export default function LeerLibroPage() {
   const [libro, setLibro] = useState<LibroInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -260,13 +243,12 @@ export default function LeerLibroPage() {
       const apiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:4000';
       try {
         const res = await fetch(`${apiUrl}/api/libros/${id}`);
-        // ✅ CORRECCIÓN 2: Tipamos la variable 'json' para evitar el 'any'.
+        // ✅ CORRECCIÓN 1: Se elimina el 'any' de esta variable.
         const json: SingleLibroApiResponse = await res.json();
         
         if (json.data && json.data.attributes) {
             setLibro({ nombre: json.data.attributes.nombre });
         } else {
-            // Manejamos el caso en que no se encuentren datos
             setLibro({ nombre: "Documento no encontrado" });
         }
       } catch (error) {
