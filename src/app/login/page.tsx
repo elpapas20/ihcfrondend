@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState('')
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  
 
   const handleLogin = async () => {
     setIsLoading(true)
@@ -25,6 +27,7 @@ export default function LoginPage() {
       localStorage.setItem('username', user.username)
       router.push('/bienvenida')
     } catch (err) {
+      console.error('Error de login:', err)
       setError('Usuario o contraseña incorrectos')
     } finally {
       setIsLoading(false)
@@ -41,10 +44,12 @@ export default function LoginPage() {
         <div className="w-full md:w-[28%] flex flex-col justify-center border-r border-gray-300 pr-6">
           {/* Logo */}
           <div className="flex justify-center mb-4">
-            <img
+            <Image
               src="/logo-biblioteca.png"
               alt="Logo UNAM"
-              className="w-70 h-50 object-contain"
+              width={200}
+              height={200}
+              className="object-contain"
             />
           </div>
 

@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { FaFile, FaStream, FaBook, FaSearchPlus, FaSearchMinus, FaChevronLeft, FaChevronRight, FaSun, FaMoon, FaTimes } from 'react-icons/fa';
-import type { DocumentProps, PageProps } from 'react-pdf';
 import { useParams } from 'next/navigation';
 
 // Configuración del worker local
@@ -123,7 +122,7 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
   useEffect(() => { setInputPage(String(currentPage)); }, [currentPage]);
   
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => { setNumPages(numPages); };
-  const onFlip = (e: any) => { setCurrentPage(e.data + 1); };
+  const onFlip = (e: {data: number}) => { setCurrentPage(e.data + 1); };
 
   
   const goToPrevPage = () => {
@@ -252,7 +251,7 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
 
 
 // --- Componente principal de la página de lectura ---
-export default function LeerLibroPage({ params }: { params: { id: string } }) {
+export default function LeerLibroPage() {
   const [libro, setLibro] = useState<LibroInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<'claro' | 'oscuro'>('claro');
