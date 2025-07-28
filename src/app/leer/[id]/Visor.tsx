@@ -1,5 +1,3 @@
-// Archivo: app/leer/[id]/Visor.tsx
-
 'use client'
 
 import { useState, useRef, forwardRef } from 'react';
@@ -9,20 +7,8 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
-// Configuración del worker de PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
-// --- INTERFACES PARA TIPADO ---
-// 1. Definimos la forma del objeto que maneja el libro (`react-pageflip`).
-//    Esto nos permite reemplazar `any` en la referencia `flipBookRef`.
-interface FlipBookActions {
-  pageFlip: () => {
-    flipNext: () => void;
-    flipPrev: () => void;
-  };
-}
-
-// Se usa `forwardRef` para que el componente `PaginaPDF` pueda recibir una `ref`.
 const PaginaPDF = forwardRef<HTMLDivElement, { pageNumber: number }>(({ pageNumber }, ref) => {
   return (
     <div ref={ref} className="bg-white shadow-inner flex items-center justify-center">
@@ -35,13 +21,14 @@ const PaginaPDF = forwardRef<HTMLDivElement, { pageNumber: number }>(({ pageNumb
     </div>
   );
 });
-PaginaPDF.displayName = 'PaginaPDF'; // Buena práctica al usar forwardRef
+PaginaPDF.displayName = 'PaginaPDF';
 
 export default function Visor() {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  // 2. Usamos nuestra interfaz para darle un tipo específico a la referencia. ¡Adiós 'any'!
-  const flipBookRef = useRef<FlipBookActions | null>(null);
+  // Dejamos la referencia como 'any' aquí, ya que la librería no exporta un tipo claro para ella.
+  // Pero lo importante es que quitamos el 'as any' del JSX.
+  const flipBookRef = useRef<any>(null);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -55,7 +42,6 @@ export default function Visor() {
     flipBookRef.current?.pageFlip()?.flipPrev();
   };
   
-  // 3. Definimos el tipo del evento 'e'. ¡Adiós al segundo 'any'!
   const enCambioDePagina = (e: { data: number }) => {
     setCurrentPage(e.data);
   };
@@ -66,7 +52,6 @@ export default function Visor() {
         file="/dummy.pdf"
         onLoadSuccess={onDocumentLoadSuccess}
         loading={<p>Cargando documento...</p>}
-        // 4. Corregimos los apóstrofes para que no den error en el build.
         error={<p className="text-red-500">Error: Asegúrate que {"'"}dummy.pdf{"'"} y {"'"}pdf.worker.min.js{"'"} están en la carpeta /public.</p>}
       >
         {numPages ? (
@@ -75,7 +60,7 @@ export default function Visor() {
               <HTMLFlipBook
                 width={450}
                 height={636}
-                ref={flipBookRef as any} // Se mantiene 'as any' aquí porque la librería no exporta un tipo para la ref directamente, pero ya lo controlamos nosotros.
+                ref={flipBookRef}
                 onFlip={enCambioDePagina}
                 className="shadow-2xl"
               >

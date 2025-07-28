@@ -16,9 +16,17 @@ pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 interface LibroInfo {
   nombre: string;
 }
-interface LibroAttributes {
-  nombre: string;
+interface SingleLibroAttributes {
+    nombre: string;
 }
+interface SingleLibroData {
+    id: number;
+    attributes: SingleLibroAttributes;
+}
+interface SingleLibroApiResponse {
+    data: SingleLibroData;
+}
+
 
 // Hook para detectar dispositivo móvil
 const useIsMobile = () => {
@@ -269,7 +277,10 @@ export default function LeerLibroPage() { // Se eliminan las props 'params'
       const apiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:4000';
       try {
         const res = await fetch(`${apiUrl}/api/libros/${id}`);
-        const json = await res.json();
+        const json: SingleLibroApiResponse = await res.json();
+          if (json.data && json.data.attributes) {
+              setLibro({ nombre: json.data.attributes.nombre });
+          }
         setLibro({ nombre: json.data.attributes.nombre });
       } catch (error) {
         console.error("Error al cargar la información del libro:", error);
