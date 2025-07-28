@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, KeyboardEvent, forwardRef } from 'react';
+import React, { useState, useRef, useEffect, KeyboardEvent, forwardRef } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,26 +9,38 @@ import 'react-pdf/dist/Page/TextLayer.css';
 import { FaFile, FaStream, FaBook, FaSearchPlus, FaSearchMinus, FaChevronLeft, FaChevronRight, FaSun, FaMoon, FaTimes } from 'react-icons/fa';
 import { useParams } from 'next/navigation';
 
-// Configuración del worker local
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
-// Interfaz para la información básica del libro
+// --- INTERFACES PARA TIPADO ---
 interface LibroInfo {
   nombre: string;
 }
+
 interface SingleLibroAttributes {
     nombre: string;
 }
+
 interface SingleLibroData {
     id: number;
     attributes: SingleLibroAttributes;
 }
+
 interface SingleLibroApiResponse {
     data: SingleLibroData;
 }
 
+// Interfaz para describir las acciones del libro y evitar 'any' en el VisorPDF
+interface FlipBookActions {
+  pageFlip: () => {
+    flipNext: () => void;
+    flipPrev: () => void;
+    turnToPage: (page: number) => void;
+  };
+}
 
-// Hook para detectar dispositivo móvil
+
+// --- COMPONENTES Y HOOKS ---
+
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -40,7 +52,6 @@ const useIsMobile = () => {
   return isMobile;
 };
 
-// Hook personalizado para navegar con arrastre
 function usePanOnDrag(ref: React.RefObject<HTMLElement>) {
   useEffect(() => {
     const el = ref.current;
@@ -90,12 +101,10 @@ function usePanOnDrag(ref: React.RefObject<HTMLElement>) {
   }, [ref]);
 }
 
-// Componente para una Página Individual del Libro
 const PaginaPDF = forwardRef<HTMLDivElement, { pageNumber: number; width?: number; className?: string }>(
   ({ pageNumber, width, className }, ref) => {
     return (
       <div ref={ref} className={`bg-white shadow-inner flex items-center justify-center ${className}`}>
-        {/* CORRECCIÓN: Se aumenta la escala a 1.5 para mejorar la nitidez */}
         <Page pageNumber={pageNumber} width={width} scale={1} renderAnnotationLayer={false} renderTextLayer={false} loading={<div className="p-4 text-sm text-gray-500">Cargando...</div>} className={className} />
       </div>
     );
@@ -103,15 +112,14 @@ const PaginaPDF = forwardRef<HTMLDivElement, { pageNumber: number; width?: numbe
 );
 PaginaPDF.displayName = 'PaginaPDF';
 
-
-// --- Componente Principal del Visor ---
 function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscuro', toggleTheme: () => void, libroNombre: string }) {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [inputPage, setInputPage] = useState("1");
   const [scale, setScale] = useState(1);
   const [viewMode, setViewMode] = useState<'pagina' | 'scroll' | 'libro'>('libro');
-  const flipBookRef = useRef<any>(null);
+  // ✅ CORRECCIÓN 1: Usamos la interfaz FlipBookActions en lugar de 'any'.
+  const flipBookRef = useRef<FlipBookActions | null>(null);
   const viewerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -175,7 +183,7 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
               <motion.div animate={{ scale: scale }} transition={{ type: 'spring', stiffness: 200, damping: 20 }} className="pt-4">
                 {viewMode === 'libro' && !isMobile ? (
                   <div style={{ width: PAGE_WIDTH * 2, height: PAGE_HEIGHT }}>
-                    <HTMLFlipBook width={PAGE_WIDTH} height={PAGE_HEIGHT} ref={flipBookRef} onFlip={onFlip} className="shadow-2xl mx-auto" showCover={true}>
+                    <HTMLFlipBook width={PAGE_WIDTH} height={PAGE_HEIGHT} ref={flipBookRef as any} onFlip={onFlip} className="shadow-2xl mx-auto" showCover={true}>
                       {Array.from(new Array(numPages), (el, index) => (
                         <PaginaPDF key={`page_${index + 1}`} pageNumber={index + 1} width={PAGE_WIDTH} className={theme === 'oscuro' ? 'invert' : ''} />
                       ))}
@@ -211,48 +219,24 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
       >
         {isMobile ? (
           <div className="flex items-center justify-between gap-2 w-full px-2">
-              <button onClick={goToPrevPage} className="p-2 rounded-full bg-blue-900 hover:bg-blue-800 disabled:opacity-50"><FaChevronLeft size={16} /></button>
-              <div>
-                  <input type="number" value={inputPage} onChange={e => setInputPage(e.target.value)} onKeyDown={handlePageInputSubmit} className="w-12 text-center bg-blue-800 rounded border border-blue-700 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
-                  <span className="text-sm"> / {numPages}</span>
-              </div>
-              <button onClick={goToNextPage} className="p-2 rounded-full bg-blue-900 hover:bg-blue-800 disabled:opacity-50"><FaChevronRight size={16} /></button>
-              <div className="flex-grow"></div>
-              <button onClick={toggleTheme} className="p-2 rounded-full bg-blue-900 hover:bg-blue-800" title="Cambiar Tema">
-                  {theme === 'claro' ? <FaMoon size={18} /> : <FaSun size={18} />}
-              </button>
+            <button onClick={goToPrevPage} className="p-2 rounded-full bg-blue-900 hover:bg-blue-800 disabled:opacity-50"><FaChevronLeft size={16} /></button>
+            <div>
+              <input type="number" value={inputPage} onChange={e => setInputPage(e.target.value)} onKeyDown={handlePageInputSubmit} className="w-12 text-center bg-blue-800 rounded border border-blue-700 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+              <span className="text-sm"> / {numPages}</span>
+            </div>
+            <button onClick={goToNextPage} className="p-2 rounded-full bg-blue-900 hover:bg-blue-800 disabled:opacity-50"><FaChevronRight size={16} /></button>
+            <div className="flex-grow"></div>
+            <button onClick={toggleTheme} className="p-2 rounded-full bg-blue-900 hover:bg-blue-800" title="Cambiar Tema">
+              {theme === 'claro' ? <FaMoon size={18} /> : <FaSun size={18} />}
+            </button>
           </div>
         ) : (
             <>
-              <div className="flex items-center gap-4 border-r border-white/20 pr-4">
-                  <span className="font-semibold text-sm truncate max-w-[200px]">{libroNombre}</span>
-              </div>
-              <div className="flex items-center gap-1 bg-blue-900 p-1 rounded">
-                  <button onClick={() => setViewMode('pagina')} className={`p-1.5 rounded ${viewMode === 'pagina' ? 'bg-cyan-500' : 'hover:bg-blue-800'}`} title="Página Única"><FaFile /></button>
-                  <button onClick={() => setViewMode('scroll')} className={`p-1.5 rounded ${viewMode === 'scroll' ? 'bg-cyan-500' : 'hover:bg-blue-800'}`} title="Desplazamiento Vertical"><FaStream /></button>
-                  <button onClick={() => setViewMode('libro')} className={`p-1.5 rounded ${viewMode === 'libro' ? 'bg-cyan-500' : 'hover:bg-blue-800'}`} title="Vista de Libro"><FaBook /></button>
-              </div>
-              <div className="flex items-center gap-2">
-                  <button onClick={goToPrevPage} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800" disabled={viewMode === 'scroll'}><FaChevronLeft /></button>
-                  <div>
-                      <input type="number" value={inputPage} onChange={e => setInputPage(e.target.value)} onKeyDown={handlePageInputSubmit} className="w-12 text-center bg-blue-800 rounded border border-blue-700 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
-                      <span> / {numPages}</span>
-                  </div>
-                  <button onClick={goToNextPage} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800" disabled={viewMode === 'scroll'}><FaChevronRight /></button>
-              </div>
-              <div className="flex items-center gap-2">
-                  <button onClick={() => changeZoom(-0.1)} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800"><FaSearchMinus /></button>
-                  <span className="w-12 text-center text-sm">{(scale * 100).toFixed(0)}%</span>
-                  <button onClick={() => changeZoom(0.1)} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800"><FaSearchPlus /></button>
-              </div>
-              <div className="flex items-center gap-4">
-                  <button onClick={toggleTheme} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800" title="Cambiar Tema">
-                      {theme === 'claro' ? <FaMoon /> : <FaSun />}
-                  </button>
-                  <button onClick={() => window.close()} className="p-1.5 rounded bg-red-500 hover:bg-red-600" title="Cerrar Lector">
-                      <FaTimes />
-                  </button>
-              </div>
+              <div className="flex items-center gap-4 border-r border-white/20 pr-4"><span className="font-semibold text-sm truncate max-w-[200px]">{libroNombre}</span></div>
+              <div className="flex items-center gap-1 bg-blue-900 p-1 rounded"><button onClick={() => setViewMode('pagina')} className={`p-1.5 rounded ${viewMode === 'pagina' ? 'bg-cyan-500' : 'hover:bg-blue-800'}`} title="Página Única"><FaFile /></button><button onClick={() => setViewMode('scroll')} className={`p-1.5 rounded ${viewMode === 'scroll' ? 'bg-cyan-500' : 'hover:bg-blue-800'}`} title="Desplazamiento Vertical"><FaStream /></button><button onClick={() => setViewMode('libro')} className={`p-1.5 rounded ${viewMode === 'libro' ? 'bg-cyan-500' : 'hover:bg-blue-800'}`} title="Vista de Libro"><FaBook /></button></div>
+              <div className="flex items-center gap-2"><button onClick={goToPrevPage} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800" disabled={viewMode === 'scroll'}><FaChevronLeft /></button><div><input type="number" value={inputPage} onChange={e => setInputPage(e.target.value)} onKeyDown={handlePageInputSubmit} className="w-12 text-center bg-blue-800 rounded border border-blue-700 focus:outline-none focus:ring-2 focus:ring-cyan-400" /><span> / {numPages}</span></div><button onClick={goToNextPage} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800" disabled={viewMode === 'scroll'}><FaChevronRight /></button></div>
+              <div className="flex items-center gap-2"><button onClick={() => changeZoom(-0.1)} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800"><FaSearchMinus /></button><span className="w-12 text-center text-sm">{(scale * 100).toFixed(0)}%</span><button onClick={() => changeZoom(0.1)} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800"><FaSearchPlus /></button></div>
+              <div className="flex items-center gap-4"><button onClick={toggleTheme} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800" title="Cambiar Tema">{theme === 'claro' ? <FaMoon /> : <FaSun />}</button><button onClick={() => window.close()} className="p-1.5 rounded bg-red-500 hover:bg-red-600" title="Cerrar Lector"><FaTimes /></button></div>
             </>
         )}
       </motion.div>
@@ -260,9 +244,8 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
   );
 }
 
-
 // --- Componente principal de la página de lectura ---
-export default function LeerLibroPage() { // Se eliminan las props 'params'
+export default function LeerLibroPage() {
   const [libro, setLibro] = useState<LibroInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<'claro' | 'oscuro'>('claro');
@@ -273,15 +256,18 @@ export default function LeerLibroPage() { // Se eliminan las props 'params'
 
   useEffect(() => {
     const fetchLibroInfo = async () => {
-      // MEJORA: Se añade una URL de respaldo para desarrollo local
       const apiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:4000';
       try {
         const res = await fetch(`${apiUrl}/api/libros/${id}`);
+        // ✅ CORRECCIÓN 2: Tipamos la variable 'json' para evitar el 'any'.
         const json: SingleLibroApiResponse = await res.json();
-          if (json.data && json.data.attributes) {
-              setLibro({ nombre: json.data.attributes.nombre });
-          }
-        setLibro({ nombre: json.data.attributes.nombre });
+        
+        if (json.data && json.data.attributes) {
+            setLibro({ nombre: json.data.attributes.nombre });
+        } else {
+            // Manejamos el caso en que no se encuentren datos
+            setLibro({ nombre: "Documento no encontrado" });
+        }
       } catch (error) {
         console.error("Error al cargar la información del libro:", error);
         setLibro({ nombre: "Documento de Muestra" });

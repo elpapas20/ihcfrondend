@@ -9,6 +9,14 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
+// ✅ CORRECCIÓN: Se crea una interfaz para describir las acciones del libro.
+interface FlipBookActions {
+  pageFlip: () => {
+    flipNext: () => void;
+    flipPrev: () => void;
+  };
+}
+
 const PaginaPDF = forwardRef<HTMLDivElement, { pageNumber: number }>(({ pageNumber }, ref) => {
   return (
     <div ref={ref} className="bg-white shadow-inner flex items-center justify-center">
@@ -26,9 +34,8 @@ PaginaPDF.displayName = 'PaginaPDF';
 export default function Visor() {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  // Dejamos la referencia como 'any' aquí, ya que la librería no exporta un tipo claro para ella.
-  // Pero lo importante es que quitamos el 'as any' del JSX.
-  const flipBookRef = useRef<any>(null);
+  // ✅ CORRECCIÓN: Se utiliza la interfaz en lugar de 'any'.
+  const flipBookRef = useRef<FlipBookActions | null>(null);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -60,7 +67,7 @@ export default function Visor() {
               <HTMLFlipBook
                 width={450}
                 height={636}
-                ref={flipBookRef}
+                ref={flipBookRef as any}
                 onFlip={enCambioDePagina}
                 className="shadow-2xl"
               >
