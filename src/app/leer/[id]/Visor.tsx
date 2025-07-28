@@ -9,7 +9,6 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
 
-// ✅ CORRECCIÓN 1: Interfaz para evitar 'any' en la referencia.
 interface FlipBookActions {
   pageFlip: () => {
     flipNext: () => void;
@@ -34,7 +33,6 @@ PaginaPDF.displayName = 'PaginaPDF';
 export default function Visor() {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  // ✅ CORRECCIÓN 1: Se usa la interfaz en lugar de 'any'.
   const flipBookRef = useRef<FlipBookActions | null>(null);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
@@ -64,12 +62,13 @@ export default function Visor() {
         {numPages ? (
           <>
             <div className="flex items-center justify-center p-4">
-              {/* ✅ CORRECCIÓN 2: Se usa @ts-expect-error, que es una práctica más segura. */}
-              {/* @ts-expect-error */}
+              {/* ✅ CORRECCIÓN 1: Se añade descripción al comentario y se usa la sintaxis correcta. */}
+              {/* @ts-expect-error: La librería react-pageflip tiene tipos de props incorrectos, ignoramos el error. */}
               <HTMLFlipBook
                 width={450}
                 height={636}
-                ref={flipBookRef as any}
+                // ✅ CORRECCIÓN 2: Se elimina el 'as any' que causaba el otro error.
+                ref={flipBookRef}
                 onFlip={enCambioDePagina}
                 className="shadow-2xl"
               >
