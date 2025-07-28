@@ -52,7 +52,7 @@ const useIsMobile = () => {
   return isMobile;
 };
 
-function usePanOnDrag(ref: React.RefObject<HTMLElement>) {
+function usePanOnDrag(ref: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -183,6 +183,7 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
               <motion.div animate={{ scale: scale }} transition={{ type: 'spring', stiffness: 200, damping: 20 }} className="pt-4">
                 {viewMode === 'libro' && !isMobile ? (
                   <div style={{ width: PAGE_WIDTH * 2, height: PAGE_HEIGHT }}>
+                    {/* @ts-ignore */}
                     <HTMLFlipBook width={PAGE_WIDTH} height={PAGE_HEIGHT} ref={flipBookRef as any} onFlip={onFlip} className="shadow-2xl mx-auto" showCover={true}>
                       {Array.from(new Array(numPages), (el, index) => (
                         <PaginaPDF key={`page_${index + 1}`} pageNumber={index + 1} width={PAGE_WIDTH} className={theme === 'oscuro' ? 'invert' : ''} />
