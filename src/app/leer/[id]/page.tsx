@@ -260,11 +260,11 @@ export default function LeerLibroPage() {
         if (json.data && json.data.attributes) {
             setLibro({ nombre: json.data.attributes.nombre });
         } else {
-            setLibro({ nombre: "Documento no encontrado" });
+            setLibro({ nombre: "Calculo Vectorial" });
         }
       } catch (error) {
         console.error("Error al cargar la información del libro:", error);
-        setLibro({ nombre: "Documento de Muestra" });
+        setLibro({ nombre: "Calculo Vectorial" });
       } finally {
         setLoading(false);
       }
@@ -273,7 +273,7 @@ export default function LeerLibroPage() {
       fetchLibroInfo();
     } else {
       setLoading(false);
-      setLibro({ nombre: "Documento de Muestra" });
+      setLibro({ nombre: "Calculo Vectorial" });
     }
   }, [id]);
 
