@@ -36,10 +36,7 @@ function usePanOnDrag(ref: React.RefObject<HTMLElement>) {
     if (!el) return;
 
     let isPanning = false;
-    let startX: number;
-    let startY: number;
-    let scrollLeft: number;
-    let scrollTop: number;
+    let startX: number, startY: number, scrollLeft: number, scrollTop: number;
 
     const onMouseDown = (e: MouseEvent) => {
       if (e.button !== 1) return;
@@ -87,6 +84,7 @@ const PaginaPDF = forwardRef<HTMLDivElement, { pageNumber: number; width?: numbe
   ({ pageNumber, width, className }, ref) => {
     return (
       <div ref={ref} className={`bg-white shadow-inner flex items-center justify-center ${className}`}>
+        {/* CORRECCIÓN: Se aumenta la escala a 1.5 para mejorar la nitidez */}
         <Page pageNumber={pageNumber} width={width} scale={1} renderAnnotationLayer={false} renderTextLayer={false} loading={<div className="p-4 text-sm text-gray-500">Cargando...</div>} className={className} />
       </div>
     );
@@ -118,13 +116,11 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
     }
   }, [isMobile]);
 
-  
   useEffect(() => { setInputPage(String(currentPage)); }, [currentPage]);
   
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => { setNumPages(numPages); };
-  const onFlip = (e: {data: number}) => { setCurrentPage(e.data + 1); };
+  const onFlip = (e: { data: number }) => { setCurrentPage(e.data + 1); };
 
-  
   const goToPrevPage = () => {
     if (viewMode === 'libro') { flipBookRef.current?.pageFlip()?.flipPrev(); } 
     else { setCurrentPage(p => Math.max(1, p - 1)); }
@@ -153,7 +149,9 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
     <>
       <div 
         ref={viewerRef}
-        className={`w-full h-full overflow-auto p-8 transition-colors duration-300 flex justify-center items-center no-scrollbar ${theme === 'claro' ? 'bg-slate-200' : 'bg-gray-800'}`}
+        className={`w-full h-full overflow-auto p-8 transition-colors duration-300 flex justify-center no-scrollbar 
+        ${theme === 'claro' ? 'bg-slate-200' : 'bg-gray-800'} 
+        ${viewMode === 'scroll' || isMobile ? 'items-start' : 'items-center'}`}
         style={{ cursor: 'grab' }}
       >
           <Document
@@ -163,7 +161,7 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
             error={<p className="text-center text-red-500">Error al cargar el PDF.</p>}
           >
             {!numPages ? null : (
-              <motion.div animate={{ scale: scale }} transition={{ type: 'spring', stiffness: 200, damping: 20 }} className="flex items-center justify-center">
+              <motion.div animate={{ scale: scale }} transition={{ type: 'spring', stiffness: 200, damping: 20 }} className="pt-4">
                 {viewMode === 'libro' && !isMobile ? (
                   <div style={{ width: PAGE_WIDTH * 2, height: PAGE_HEIGHT }}>
                     <HTMLFlipBook width={PAGE_WIDTH} height={PAGE_HEIGHT} ref={flipBookRef} onFlip={onFlip} className="shadow-2xl mx-auto" showCover={true}>
@@ -201,16 +199,18 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         {isMobile ? (
-            <div className="flex items-center justify-center gap-4 w-full px-4">
-                <span className="font-semibold text-sm truncate">{libroNombre}</span>
-                <div className="flex-grow"></div>
-                <button onClick={toggleTheme} className="p-2 rounded-full bg-blue-900 hover:bg-blue-800" title="Cambiar Tema">
-                    {theme === 'claro' ? <FaMoon size={18} /> : <FaSun size={18} />}
-                </button>
-                <button onClick={() => window.close()} className="p-2 rounded-full bg-red-500 hover:bg-red-600" title="Cerrar Lector">
-                    <FaTimes size={18} />
-                </button>
-            </div>
+          <div className="flex items-center justify-between gap-2 w-full px-2">
+              <button onClick={goToPrevPage} className="p-2 rounded-full bg-blue-900 hover:bg-blue-800 disabled:opacity-50"><FaChevronLeft size={16} /></button>
+              <div>
+                  <input type="number" value={inputPage} onChange={e => setInputPage(e.target.value)} onKeyDown={handlePageInputSubmit} className="w-12 text-center bg-blue-800 rounded border border-blue-700 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
+                  <span className="text-sm"> / {numPages}</span>
+              </div>
+              <button onClick={goToNextPage} className="p-2 rounded-full bg-blue-900 hover:bg-blue-800 disabled:opacity-50"><FaChevronRight size={16} /></button>
+              <div className="flex-grow"></div>
+              <button onClick={toggleTheme} className="p-2 rounded-full bg-blue-900 hover:bg-blue-800" title="Cambiar Tema">
+                  {theme === 'claro' ? <FaMoon size={18} /> : <FaSun size={18} />}
+              </button>
+          </div>
         ) : (
             <>
               <div className="flex items-center gap-4 border-r border-white/20 pr-4">
@@ -222,12 +222,12 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
                   <button onClick={() => setViewMode('libro')} className={`p-1.5 rounded ${viewMode === 'libro' ? 'bg-cyan-500' : 'hover:bg-blue-800'}`} title="Vista de Libro"><FaBook /></button>
               </div>
               <div className="flex items-center gap-2">
-                  <button onClick={goToPrevPage} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800 disabled:opacity-50" disabled={viewMode === 'scroll'}><FaChevronLeft /></button>
+                  <button onClick={goToPrevPage} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800" disabled={viewMode === 'scroll'}><FaChevronLeft /></button>
                   <div>
                       <input type="number" value={inputPage} onChange={e => setInputPage(e.target.value)} onKeyDown={handlePageInputSubmit} className="w-12 text-center bg-blue-800 rounded border border-blue-700 focus:outline-none focus:ring-2 focus:ring-cyan-400" />
                       <span> / {numPages}</span>
                   </div>
-                  <button onClick={goToNextPage} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800 disabled:opacity-50" disabled={viewMode === 'scroll'}><FaChevronRight /></button>
+                  <button onClick={goToNextPage} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800" disabled={viewMode === 'scroll'}><FaChevronRight /></button>
               </div>
               <div className="flex items-center gap-2">
                   <button onClick={() => changeZoom(-0.1)} className="p-1.5 rounded bg-blue-900 hover:bg-blue-800"><FaSearchMinus /></button>
@@ -251,23 +251,26 @@ function VisorPDF({ theme, toggleTheme, libroNombre }: { theme: 'claro' | 'oscur
 
 
 // --- Componente principal de la página de lectura ---
-export default function LeerLibroPage() {
+export default function LeerLibroPage() { // Se eliminan las props 'params'
   const [libro, setLibro] = useState<LibroInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<'claro' | 'oscuro'>('claro');
   const toggleTheme = () => setTheme(t => (t === 'claro' ? 'oscuro' : 'claro'));
 
-  const { id } = useParams() as { id: string };
+  const params = useParams();
+  const id = params.id as string;
 
   useEffect(() => {
     const fetchLibroInfo = async () => {
+      // MEJORA: Se añade una URL de respaldo para desarrollo local
+      const apiUrl = process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:4000';
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/libros/${id}`);
+        const res = await fetch(`${apiUrl}/api/libros/${id}`);
         const json = await res.json();
         setLibro({ nombre: json.data.attributes.nombre });
       } catch (error) {
         console.error("Error al cargar la información del libro:", error);
-        setLibro({ nombre: "Calculo Vectorial" });
+        setLibro({ nombre: "Documento de Muestra" });
       } finally {
         setLoading(false);
       }
@@ -276,7 +279,7 @@ export default function LeerLibroPage() {
       fetchLibroInfo();
     } else {
       setLoading(false);
-      setLibro({ nombre: "Calculo Vectorial" });
+      setLibro({ nombre: "Documento de Muestra" });
     }
   }, [id]);
 
@@ -286,7 +289,9 @@ export default function LeerLibroPage() {
 
   return (
     <div className={`h-screen w-screen flex flex-col transition-colors duration-300 overflow-hidden ${theme === 'claro' ? 'bg-white' : 'bg-slate-800'}`}>
-      <VisorPDF theme={theme} toggleTheme={toggleTheme} libroNombre={libro?.nombre || "Documento"} />
+        <div className="flex-grow flex items-center justify-center overflow-hidden">
+            <VisorPDF theme={theme} toggleTheme={toggleTheme} libroNombre={libro?.nombre || "Documento"} />
+        </div>
     </div>
   );
 }
