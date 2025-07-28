@@ -8,7 +8,6 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import type { DocumentProps, PageProps } from 'react-pdf';
 
 // Configuración del worker de PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";

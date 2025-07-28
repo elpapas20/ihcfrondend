@@ -6,6 +6,17 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 
+// Se crea una interfaz que coincide exactamente con tu estructura de datos
+interface MiCategoriaDesdeApi {
+  nombre?: string;
+  attributes?: {
+    nombre: string;
+  };
+  icono?: {
+    url?: string;
+  };
+}
+
 interface Tematica {
   nombre: string;
   icono: string | null;
@@ -31,7 +42,8 @@ export default function BienvenidaPage() {
   const fetchCategorias = async () => {
     setLoading(true);
     try {
-      const res = await fetch('https://ihcbackend.onrender.com/api/categorias?populate=*')
+      const apiUrl = 'https://ihcbackend.onrender.com';
+      const res = await fetch(`${apiUrl}/api/categorias?populate=*`)
       const data = await res.json()
 
       if (!data?.data || !Array.isArray(data.data)) {
@@ -39,10 +51,10 @@ export default function BienvenidaPage() {
         return
       }
 
-      // --- SE UTILIZA TU LÓGICA ORIGINAL PARA MAPEAR LOS DATOS DE STRAPI ---
-      const items = data.data.map((item: any) => ({
+      // Se usa la nueva interfaz y se mantiene tu lógica original de mapeo
+      const items: Tematica[] = data.data.map((item: MiCategoriaDesdeApi) => ({
         nombre: item.nombre || item.attributes?.nombre || 'Sin nombre',
-        icono: item.icono?.url ? `https://ihcbackend.onrender.com${item.icono.url}` : null,
+        icono: item.icono?.url ? `${apiUrl}${item.icono.url}` : null,
       }))
 
       setTematicas(items)

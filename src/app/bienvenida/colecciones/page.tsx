@@ -10,10 +10,7 @@ import {
   FaSearch, 
   FaChevronLeft, 
   FaChevronRight, 
-  FaArrowRight, 
-  FaPrint, 
   FaDownload, 
-  FaShoppingBasket,
   FaBookOpen
 } from 'react-icons/fa'
 
@@ -25,18 +22,6 @@ interface Libro {
   categoriaNombre: string;
   descripcion?: string;
 }
-
-// HOOK PARA DETECTAR DISPOSITIVO MÓVIL
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkScreenSize = () => setIsMobile(window.innerWidth < 768);
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
-  return isMobile;
-};
 
 // COMPONENTE MODAL
 function LibroModal({ 
@@ -288,16 +273,36 @@ export default function ColeccionesPage() {
       try {
         const res = await fetch('https://ihcbackend.onrender.com/api/libros?populate=*');
         const json = await res.json();
-        const libros: Libro[] = json.data.map((libro: any) => {
-          const descripcionPlano = Array.isArray(libro.descripcion) ? libro.descripcion.flatMap((block: any) => Array.isArray(block.children) ? block.children.map((child: any) => child.text || '') : [] ).join(' ') : '';
-          return {
-            id: libro.id,
-            nombre: libro.nombre,
-            portada: libro.portada?.formats?.small?.url ? `https://ihcbackend.onrender.com${libro.portada.formats.small.url}` : `https://ihcbackend.onrender.com${libro.portada?.url || '/uploads/default.jpg'}`,
-            categoriaNombre: libro.categorias?.[0]?.nombre || 'Sin categoría',
-            descripcion: descripcionPlano.trim()
-          };
-        });
+        interface MiLibroDesdeApi {
+            id: number;
+            nombre: string;
+            descripcion?: any[]; // Mantenemos any aquí por la complejidad de la estructura interna
+            portada?: {
+              url?: string;
+              formats?: {
+                small?: {
+                  url?: string;
+                };
+              };
+            };
+            categorias?: {
+              nombre: string;
+            }[];
+          }
+
+          // 2. Usa la nueva interfaz en tu función .map()
+          const libros: Libro[] = json.data.map((libro: MiLibroDesdeApi) => {
+            const descripcionPlano = Array.isArray(libro.descripcion) ? libro.descripcion.flatMap((block: any) => Array.isArray(block.children) ? block.children.map((child: any) => child.text || '') : [] ).join(' ') : '';
+            
+            // Tu lógica original, que ahora es compatible con la nueva interfaz
+            return {
+              id: libro.id,
+              nombre: libro.nombre,
+              portada: libro.portada?.formats?.small?.url ? `https://ihcbackend.onrender.com${libro.portada.formats.small.url}` : `https://ihcbackend.onrender.com${libro.portada?.url || '/uploads/default.jpg'}`,
+              categoriaNombre: libro.categorias?.[0]?.nombre || 'Sin categoría',
+              descripcion: descripcionPlano.trim()
+            };
+          });
         setTodosLosLibros(libros);
         const categorias = new Set(libros.map(l => l.categoriaNombre));
         setCategoriasUnicas(Array.from(categorias));
