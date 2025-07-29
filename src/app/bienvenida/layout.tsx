@@ -12,6 +12,7 @@ import {
   FaEnvelope,
   FaUserCircle,
   FaBars,
+  FaWhatsapp,
 } from 'react-icons/fa'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -25,7 +26,6 @@ export default function BienvenidaLayout({ children }: { children: ReactNode }) 
     window.location.href = '/login'
   }
   
-  // Array de navegación actualizado (sin "Revistas")
   const navLinks = [
     { href: '/bienvenida', label: 'Inicio' },
     { href: '/bienvenida/acerca-de', label: 'Acerca de' },
@@ -51,7 +51,11 @@ export default function BienvenidaLayout({ children }: { children: ReactNode }) 
             <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-white">
               <FaBars size={24} />
             </button>
-            <Image src="/logo-unam.png" alt="Logo UNAM" width={70} height={70} />
+            
+            <Link href="https://www.gob.pe/unam" target="_blank" rel="noopener noreferrer" aria-label="Página principal de la UNAM">
+              <Image src="/logo-unam.png" alt="Logo UNAM" width={70} height={70} />
+            </Link>
+
             <div className="flex-grow flex justify-center">
               <nav className="hidden md:flex gap-2 text-lg text-white">
                 {navLinks.map((link) => {
@@ -104,9 +108,9 @@ export default function BienvenidaLayout({ children }: { children: ReactNode }) 
             >
               <div className="flex flex-col gap-3 mb-4">
                 {navLinks.map((link) => (
-                   <Link key={link.href} href={link.href} className={pathname === link.href ? 'text-cyan-300 font-bold' : ''}>
-                     {link.label}
-                   </Link>
+                    <Link key={link.href} href={link.href} className={pathname === link.href ? 'text-cyan-300 font-bold' : ''}>
+                      {link.label}
+                    </Link>
                 ))}
               </div>
               <div className="flex items-center justify-between border-t border-white/20 pt-3">
@@ -124,20 +128,34 @@ export default function BienvenidaLayout({ children }: { children: ReactNode }) 
 
         <div className="flex-grow">{children}</div>
 
-        <footer className="relative z-50 text-white py-6 px-6 flex flex-col md:flex-row justify-between items-center mt-auto bg-[#001f3f]">
-          <div className="mb-4 md:mb-0 text-sm flex items-center gap-4">
-            <span className="font-semibold">Redes:</span>
-            <a href="#" target="_blank" className="hover:text-cyan-300" rel="noreferrer"><FaFacebook size={20} /></a>
-            <a href="#" target="_blank" className="hover:text-cyan-300" rel="noreferrer"><FaTwitter size={20} /></a>
-            <a href="#" target="_blank" className="hover:text-cyan-300" rel="noreferrer"><FaInstagram size={20} /></a>
+        <footer className="relative z-50 text-white py-6 px-6 flex flex-col items-center mt-auto bg-[#001f3f]">
+          <div className="w-full flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-4 md:mb-0 text-sm flex items-center gap-4">
+              <span className="font-semibold">Redes:</span>
+              <a href="https://facebook.com/tu-pagina" target="_blank" className="hover:text-cyan-300" rel="noopener noreferrer" aria-label="Visita nuestro Facebook"><FaFacebook size={20} /></a>
+              <a href="https://twitter.com/tu-usuario" target="_blank" className="hover:text-cyan-300" rel="noopener noreferrer" aria-label="Síguenos en Twitter"><FaTwitter size={20} /></a>
+              <a href="https://instagram.com/tu-usuario" target="_blank" className="hover:text-cyan-300" rel="noopener noreferrer" aria-label="Síguenos en Instagram"><FaInstagram size={20} /></a>
+            </div>
+            <div className="text-sm text-center md:text-right">
+              <p className="flex items-center justify-center md:justify-end gap-2">
+                <FaEnvelope size={16} />
+                <a href="mailto:biblioteca@unam.edu.pe" className="hover:underline">biblioteca@unam.edu.pe</a>
+              </p>
+              <p>
+                <a href="https://maps.app.goo.gl/83UvqCPC8QSBR9oF9" target="_blank" rel="noopener noreferrer" className="hover:underline">
+                  Av. Simón Bolívar s/n, Moquegua, Perú
+                </a>
+              </p>
+              <p className="flex items-center justify-center md:justify-end gap-2">
+                <FaWhatsapp size={16} />
+                <a href="https://wa.me/51953967519" target="_blank" rel="noopener noreferrer" className="hover:underline">
+                  +51 953967519
+                </a>
+              </p>
+            </div>
           </div>
-          <div className="text-sm text-center md:text-right">
-            <p className="flex items-center justify-center md:justify-end gap-2">
-              <FaEnvelope size={16} />
-              <a href="mailto:biblioteca@unam.edu.pe" className="hover:underline">biblioteca@unam.edu.pe</a>
-            </p>
-            <p>Av. Simón Bolívar s/n, Moquegua, Perú</p>
-            <p>Tel: (53) 123-4567</p>
+          <div className="w-full text-center mt-6 pt-4 border-t border-white/30 text-xs text-white/70">
+            <p>pagina creada por D&apos;anyelo Alessandro Segovia Bernedo</p>
           </div>
         </footer>
       </div>

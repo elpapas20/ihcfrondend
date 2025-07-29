@@ -11,18 +11,15 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
-  
 
   const handleLogin = async () => {
     setIsLoading(true)
     setError('')
-
     try {
       const response = await axios.post('https://ihcbackend.onrender.com/api/auth/local', {
         identifier,
         password,
       })
-
       const { user } = response.data
       localStorage.setItem('username', user.username)
       router.push('/bienvenida')
@@ -40,9 +37,7 @@ export default function LoginPage() {
       style={{ backgroundImage: "url('/fondo-biblioteca.png')" }}
     >
       <div className="bg-white/90 rounded-xl shadow-xl p-6 md:p-10 max-w-7xl w-full flex flex-col md:flex-row gap-12">
-        {/* Login Section */}
         <div className="w-full md:w-[28%] flex flex-col justify-center border-r border-gray-300 pr-6">
-          {/* Logo */}
           <div className="flex justify-center mb-4">
             <Image
               src="/logo-biblioteca.png"
@@ -70,6 +65,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 rounded border border-gray-300 focus:ring-2 focus:ring-cyan-600 outline-none"
             />
+            
             {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
             {isLoading ? (
@@ -102,11 +98,21 @@ export default function LoginPage() {
               >
                 Ingresar
               </button>
+              
             )}
+            <div className="text-right">
+              <a 
+                href="https://simuladoretiquetado.promperu.gob.pe/SimuladorWeb/Seguridad/RestorePassword" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-sm text-cyan-700 hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* Tabla de ayuda / contacto */}
         <div className="w-full md:w-[72%] pl-6">
           <h2 className="text-xl font-bold mb-4 text-center">Centro de Ayuda - Biblioteca Virtual</h2>
 
